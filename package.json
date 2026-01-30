@@ -1,0 +1,29 @@
+{
+  "name": "boxingmate",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev:api": "pnpm --filter api start:dev",
+    "dev:mobile": "pnpm --filter mobile start", 
+    "start:api": "pnpm --filter api start:dev",
+    "start:mobile": "pnpm --filter mobile start",
+    "test:api": "pnpm --filter api test",
+    "test:api:e2e": "pnpm --filter api test:e2e",
+    "build:mobile": "cd apps/mobile && npx expo export",
+    "build:api": "cd apps/api && npx tsc -p tsconfig.build.json",
+    "lint": "pnpm -r lint",
+    "build": "pnpm build:api && pnpm build:mobile",
+    "install-all": "pnpm install"
+  },
+  "volta": {
+    "node": "22.12.0"
+  },
+  "dependencies": {
+    "@nestjs/config": "^4.0.2",
+    "@prisma/client": "^7.3.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
