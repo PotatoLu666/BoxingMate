@@ -9,10 +9,12 @@ import {
   Modal,
   ScrollView 
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SessionStorage } from '../../utils/storage';
 import { TrainingSession } from '../../types/session';
 
 export default function LogScreen() {
+  const { t, i18n } = useTranslation();
   const [sessions, setSessions] = useState<TrainingSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<TrainingSession | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -43,12 +45,14 @@ export default function LogScreen() {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const sessionDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
+    const locale = i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US';
+
     if (sessionDate.getTime() === today.getTime()) {
-      return '今天';
+      return t('log.today');
     } else if (sessionDate.getTime() === today.getTime() - 24 * 60 * 60 * 1000) {
-      return '昨天';
+      return t('log.yesterday');
     } else {
-      return date.toLocaleDateString('zh-CN', { 
+      return date.toLocaleDateString(locale, { 
         month: 'short', 
         day: 'numeric' 
       });
@@ -57,7 +61,8 @@ export default function LogScreen() {
 
   // 格式化时间
   const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString('zh-CN', { 
+    const locale = i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US';
+    return date.toLocaleTimeString(locale, { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
@@ -103,7 +108,7 @@ export default function LogScreen() {
       
       <View style={styles.sessionDetails}>
         <Text style={styles.roundsText}>
-          {item.completedRounds}/{item.plannedRounds} 回合
+          {t('log.rounds', { completed: item.completedRounds, planned: item.plannedRounds })}
         </Text>
         <Text style={styles.settingText}>
           {formatSettingTime(item.roundSeconds)} / {formatSettingTime(item.restSeconds)}
@@ -121,14 +126,14 @@ export default function LogScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>训练记录</Text>
-        <Text style={styles.subtitle}>最近 {sessions.length} 次训练</Text>
+        <Text style={styles.title}>{t('log.title')}</Text>
+        <Text style={styles.subtitle}>{t('log.recentCount', { count: sessions.length })}</Text>
       </View>
 
       {sessions.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>还没有训练记录</Text>
-          <Text style={styles.emptySubtext}>完成第一次训练后，记录会显示在这里</Text>
+          <Text style={styles.emptyText}>{t('log.emptyTitle')}</Text>
+          <Text style={styles.emptySubtext}>{t('log.emptySubtitle')}</Text>
         </View>
       ) : (
         <FlatList
@@ -150,32 +155,32 @@ export default function LogScreen() {
         <View style={styles.detailModalOverlay}>
           <View style={styles.detailModalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.detailModalTitle}>训练详情</Text>
+              <Text style={styles.detailModalTitle}>{t('log.detailTitle')}</Text>
               
               {selectedSession && (
                 <View style={styles.detailContent}>
                   <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>时间信息</Text>
+                    <Text style={styles.sectionTitle}>{t('log.timeInfo')}</Text>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>日期:</Text>
+                      <Text style={styles.detailLabel}>{t('log.date')}</Text>
                       <Text style={styles.detailValue}>
-                        {selectedSession.startedAt.toLocaleDateString('zh-CN')}
+                        {selectedSession.startedAt.toLocaleDateString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>开始:</Text>
+                      <Text style={styles.detailLabel}>{t('log.start')}</Text>
                       <Text style={styles.detailValue}>
                         {formatTime(selectedSession.startedAt)}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>结束:</Text>
+                      <Text style={styles.detailLabel}>{t('log.endLabel')}</Text>
                       <Text style={styles.detailValue}>
                         {formatTime(selectedSession.endedAt)}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>总时长:</Text>
+                      <Text style={styles.detailLabel}>{t('log.duration')}</Text>
                       <Text style={styles.detailValue}>
                         {formatDuration(selectedSession.totalSeconds)}
                       </Text>
@@ -183,27 +188,27 @@ export default function LogScreen() {
                   </View>
 
                   <View style={styles.detailSection}>
-                    <Text style={styles.sectionTitle}>训练设置</Text>
+                    <Text style={styles.sectionTitle}>{t('log.trainingSetting')}</Text>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>回合时间:</Text>
+                      <Text style={styles.detailLabel}>{t('log.roundTimeLabel')}</Text>
                       <Text style={styles.detailValue}>
                         {formatSettingTime(selectedSession.roundSeconds)}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>休息时间:</Text>
+                      <Text style={styles.detailLabel}>{t('log.restTimeLabel')}</Text>
                       <Text style={styles.detailValue}>
                         {formatSettingTime(selectedSession.restSeconds)}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>计划回合:</Text>
+                      <Text style={styles.detailLabel}>{t('log.plannedRounds')}</Text>
                       <Text style={styles.detailValue}>
                         {selectedSession.plannedRounds}
                       </Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>完成回合:</Text>
+                      <Text style={styles.detailLabel}>{t('log.completedRoundsLabel')}</Text>
                       <Text style={styles.detailValue}>
                         {selectedSession.completedRounds}
                       </Text>
@@ -212,7 +217,7 @@ export default function LogScreen() {
 
                   {selectedSession.note && (
                     <View style={styles.detailSection}>
-                      <Text style={styles.sectionTitle}>备注</Text>
+                      <Text style={styles.sectionTitle}>{t('log.note')}</Text>
                       <Text style={styles.noteText}>{selectedSession.note}</Text>
                     </View>
                   )}
@@ -224,7 +229,7 @@ export default function LogScreen() {
               style={styles.closeButton} 
               onPress={() => setShowDetailModal(false)}
             >
-              <Text style={styles.closeButtonText}>关闭</Text>
+              <Text style={styles.closeButtonText}>{t('log.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>

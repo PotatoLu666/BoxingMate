@@ -1,0 +1,84 @@
+{
+  "tabs": {
+    "train": "训练",
+    "tabTwo": "Tab Two",
+    "log": "记录",
+    "dev": "开发"
+  },
+  "train": {
+    "readyToTrain": "准备训练",
+    "round": "回合",
+    "rest": "休息",
+    "paused": "已暂停",
+    "trainingComplete": "训练完成！",
+    "roundOf": "回合 {{current}} / {{total}}",
+    "settings": "设置",
+    "roundTime": "回合时间",
+    "restTime": "休息时间",
+    "totalRounds": "总回合",
+    "startTraining": "开始训练",
+    "newTraining": "新训练",
+    "resume": "继续",
+    "pause": "暂停",
+    "end": "结束",
+    "endTraining": "结束训练",
+    "endTrainingConfirm": "确定要结束当前训练吗？",
+    "cancel": "取消",
+    "confirm": "确定",
+    "summaryTitle": "训练完成！",
+    "startTime": "开始时间:",
+    "endTime": "结束时间:",
+    "roundSetting": "回合设置:",
+    "completedRounds": "完成回合:",
+    "totalDuration": "总时长:",
+    "noteLabel": "备注 (可选):",
+    "notePlaceholder": "记录今天的训练感受...",
+    "discard": "不保存",
+    "save": "保存"
+  },
+  "log": {
+    "title": "训练记录",
+    "recentCount": "最近 {{count}} 次训练",
+    "emptyTitle": "还没有训练记录",
+    "emptySubtitle": "完成第一次训练后，记录会显示在这里",
+    "today": "今天",
+    "yesterday": "昨天",
+    "rounds": "{{completed}}/{{planned}} 回合",
+    "detailTitle": "训练详情",
+    "timeInfo": "时间信息",
+    "date": "日期:",
+    "start": "开始:",
+    "endLabel": "结束:",
+    "duration": "总时长:",
+    "trainingSetting": "训练设置",
+    "roundTimeLabel": "回合时间:",
+    "restTimeLabel": "休息时间:",
+    "plannedRounds": "计划回合:",
+    "completedRoundsLabel": "完成回合:",
+    "note": "备注",
+    "close": "关闭"
+  },
+  "dev": {
+    "title": "开发工具",
+    "loading": "请求中...",
+    "pingApi": "Ping API",
+    "apiResponse": "API 响应:",
+    "placeholder": "点击上面按钮发送请求",
+    "error": "错误: {{message}}",
+    "unknownError": "未知错误",
+    "ipNote": "注意: 请修改代码中的 IP 地址为你的实际 PC IP 地址 (当前设置为 192.168.1.100)"
+  },
+  "notFound": {
+    "title": "哎呀！",
+    "message": "页面不存在。",
+    "goHome": "返回主页！"
+  },
+  "modal": {
+    "title": "弹窗"
+  },
+  "editScreenInfo": {
+    "openCode": "打开这个页面的代码：",
+    "changeText": "修改任意文本并保存，应用将自动更新。",
+    "tapHere": "如果修改后应用没有自动更新，请点击这里"
+  }
+}

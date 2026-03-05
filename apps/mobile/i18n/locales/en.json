@@ -1,0 +1,84 @@
+{
+  "tabs": {
+    "train": "Train",
+    "tabTwo": "Tab Two",
+    "log": "Log",
+    "dev": "Dev"
+  },
+  "train": {
+    "readyToTrain": "Ready to Train",
+    "round": "Round",
+    "rest": "Rest",
+    "paused": "Paused",
+    "trainingComplete": "Training Complete!",
+    "roundOf": "Round {{current}} / {{total}}",
+    "settings": "Settings",
+    "roundTime": "Round Time",
+    "restTime": "Rest Time",
+    "totalRounds": "Total Rounds",
+    "startTraining": "Start Training",
+    "newTraining": "New Training",
+    "resume": "Resume",
+    "pause": "Pause",
+    "end": "End",
+    "endTraining": "End Training",
+    "endTrainingConfirm": "Are you sure you want to end this training?",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "summaryTitle": "Training Complete!",
+    "startTime": "Start Time:",
+    "endTime": "End Time:",
+    "roundSetting": "Round Setting:",
+    "completedRounds": "Completed:",
+    "totalDuration": "Duration:",
+    "noteLabel": "Note (optional):",
+    "notePlaceholder": "Record how you felt today...",
+    "discard": "Discard",
+    "save": "Save"
+  },
+  "log": {
+    "title": "Training Log",
+    "recentCount": "Last {{count}} sessions",
+    "emptyTitle": "No training records yet",
+    "emptySubtitle": "Your records will appear here after your first session",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "rounds": "{{completed}}/{{planned}} rounds",
+    "detailTitle": "Training Details",
+    "timeInfo": "Time Info",
+    "date": "Date:",
+    "start": "Start:",
+    "endLabel": "End:",
+    "duration": "Duration:",
+    "trainingSetting": "Training Settings",
+    "roundTimeLabel": "Round Time:",
+    "restTimeLabel": "Rest Time:",
+    "plannedRounds": "Planned Rounds:",
+    "completedRoundsLabel": "Completed:",
+    "note": "Note",
+    "close": "Close"
+  },
+  "dev": {
+    "title": "Dev Tools",
+    "loading": "Loading...",
+    "pingApi": "Ping API",
+    "apiResponse": "API Response:",
+    "placeholder": "Tap the button above to send a request",
+    "error": "Error: {{message}}",
+    "unknownError": "Unknown error",
+    "ipNote": "Note: Update the IP address in the code to your actual PC IP (currently 192.168.1.100)"
+  },
+  "notFound": {
+    "title": "Oops!",
+    "message": "This screen doesn't exist.",
+    "goHome": "Go to home screen!"
+  },
+  "modal": {
+    "title": "Modal"
+  },
+  "editScreenInfo": {
+    "openCode": "Open up the code for this screen:",
+    "changeText": "Change any of the text, save the file, and your app will automatically update.",
+    "tapHere": "Tap here if your app doesn't automatically update after making changes"
+  }
+}

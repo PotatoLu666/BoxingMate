@@ -1,12 +1,15 @@
 import { StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 
 export default function TabTwoScreen() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
+      <Text style={styles.title}>{t('tabs.tabTwo')}</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       <EditScreenInfo path="app/(tabs)/two.tsx" />
     </View>

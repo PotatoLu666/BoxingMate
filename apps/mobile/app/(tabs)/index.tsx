@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, SafeAreaView, View, Text, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SessionStorage } from '../../utils/storage';
 import { TrainingSession, SessionSummary } from '../../types/session';
 
@@ -12,6 +13,7 @@ interface TimerConfig {
 }
 
 export default function TrainScreen() {
+  const { t, i18n } = useTranslation();
   const [state, setState] = useState<TimerState>('idle');
   const [currentRound, setCurrentRound] = useState(1);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -180,11 +182,11 @@ export default function TrainScreen() {
   // 获取状态显示文本
   const getStateText = (): string => {
     switch (state) {
-      case 'idle': return 'Ready to Train';
-      case 'round': return 'Round';
-      case 'rest': return 'Rest';
-      case 'paused': return 'Paused';
-      case 'finished': return 'Training Complete!';
+      case 'idle': return t('train.readyToTrain');
+      case 'round': return t('train.round');
+      case 'rest': return t('train.rest');
+      case 'paused': return t('train.paused');
+      case 'finished': return t('train.trainingComplete');
       default: return '';
     }
   };
@@ -244,7 +246,7 @@ export default function TrainScreen() {
         </Text>
         {state !== 'idle' && state !== 'finished' && (
           <Text style={styles.roundText}>
-            Round {currentRound} / {config.totalRounds}
+            {t('train.roundOf', { current: currentRound, total: config.totalRounds })}
           </Text>
         )}
       </View>
@@ -259,11 +261,11 @@ export default function TrainScreen() {
       {/* 设置区域 */}
       {state === 'idle' && (
         <View style={styles.settingsContainer}>
-          <Text style={styles.settingsTitle}>Settings</Text>
+          <Text style={styles.settingsTitle}>{t('train.settings')}</Text>
           
           {/* Round Time */}
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Round Time</Text>
+            <Text style={styles.settingLabel}>{t('train.roundTime')}</Text>
             <View style={styles.settingControls}>
               <TouchableOpacity 
                 style={styles.controlButton}
@@ -283,7 +285,7 @@ export default function TrainScreen() {
 
           {/* Rest Time */}
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Rest Time</Text>
+            <Text style={styles.settingLabel}>{t('train.restTime')}</Text>
             <View style={styles.settingControls}>
               <TouchableOpacity 
                 style={styles.controlButton}
@@ -303,7 +305,7 @@ export default function TrainScreen() {
 
           {/* Total Rounds */}
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Total Rounds</Text>
+            <Text style={styles.settingLabel}>{t('train.totalRounds')}</Text>
             <View style={styles.settingControls}>
               <TouchableOpacity 
                 style={styles.controlButton}
@@ -327,13 +329,13 @@ export default function TrainScreen() {
       <View style={styles.controlsContainer}>
         {state === 'idle' && (
           <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-            <Text style={styles.startButtonText}>Start Training</Text>
+            <Text style={styles.startButtonText}>{t('train.startTraining')}</Text>
           </TouchableOpacity>
         )}
         
         {state === 'finished' && (
           <TouchableOpacity style={styles.resetButton} onPress={() => setState('idle')}>
-            <Text style={styles.resetButtonText}>New Training</Text>
+            <Text style={styles.resetButtonText}>{t('train.newTraining')}</Text>
           </TouchableOpacity>
         )}
 
@@ -341,11 +343,11 @@ export default function TrainScreen() {
           <View style={styles.activeControls}>
             <TouchableOpacity style={styles.pauseButton} onPress={handlePauseResume}>
               <Text style={styles.pauseButtonText}>
-                {state === 'paused' ? 'Resume' : 'Pause'}
+                {state === 'paused' ? t('train.resume') : t('train.pause')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.endButton} onPress={handleEnd}>
-              <Text style={styles.endButtonText}>End</Text>
+              <Text style={styles.endButtonText}>{t('train.end')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -360,20 +362,20 @@ export default function TrainScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>结束训练</Text>
-            <Text style={styles.modalText}>确定要结束当前训练吗？</Text>
+            <Text style={styles.modalTitle}>{t('train.endTraining')}</Text>
+            <Text style={styles.modalText}>{t('train.endTrainingConfirm')}</Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 style={styles.modalCancelButton} 
                 onPress={() => setShowEndModal(false)}
               >
-                <Text style={styles.modalCancelText}>取消</Text>
+                <Text style={styles.modalCancelText}>{t('train.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.modalConfirmButton} 
                 onPress={confirmEnd}
               >
-                <Text style={styles.modalConfirmText}>确定</Text>
+                <Text style={styles.modalConfirmText}>{t('train.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -389,14 +391,14 @@ export default function TrainScreen() {
       >
         <View style={styles.summaryModalOverlay}>
           <View style={styles.summaryModalContent}>
-            <Text style={styles.summaryModalTitle}>训练完成！</Text>
+            <Text style={styles.summaryModalTitle}>{t('train.summaryTitle')}</Text>
             
             {sessionSummary && (
               <View style={styles.summaryDetails}>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>开始时间:</Text>
+                  <Text style={styles.summaryLabel}>{t('train.startTime')}</Text>
                   <Text style={styles.summaryValue}>
-                    {sessionSummary.startedAt.toLocaleTimeString('zh-CN', { 
+                    {sessionSummary.startedAt.toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { 
                       hour: '2-digit', 
                       minute: '2-digit' 
                     })}
@@ -404,9 +406,9 @@ export default function TrainScreen() {
                 </View>
                 
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>结束时间:</Text>
+                  <Text style={styles.summaryLabel}>{t('train.endTime')}</Text>
                   <Text style={styles.summaryValue}>
-                    {sessionSummary.endedAt.toLocaleTimeString('zh-CN', { 
+                    {sessionSummary.endedAt.toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { 
                       hour: '2-digit', 
                       minute: '2-digit' 
                     })}
@@ -414,33 +416,33 @@ export default function TrainScreen() {
                 </View>
                 
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>回合设置:</Text>
+                  <Text style={styles.summaryLabel}>{t('train.roundSetting')}</Text>
                   <Text style={styles.summaryValue}>
                     {formatTime(sessionSummary.roundSeconds)} / {formatTime(sessionSummary.restSeconds)}
                   </Text>
                 </View>
                 
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>完成回合:</Text>
+                  <Text style={styles.summaryLabel}>{t('train.completedRounds')}</Text>
                   <Text style={styles.summaryValue}>
                     {sessionSummary.completedRounds} / {sessionSummary.plannedRounds}
                   </Text>
                 </View>
                 
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>总时长:</Text>
+                  <Text style={styles.summaryLabel}>{t('train.totalDuration')}</Text>
                   <Text style={styles.summaryValue}>
                     {formatDuration(sessionSummary.totalSeconds)}
                   </Text>
                 </View>
                 
                 <View style={styles.noteContainer}>
-                  <Text style={styles.noteLabel}>备注 (可选):</Text>
+                  <Text style={styles.noteLabel}>{t('train.noteLabel')}</Text>
                   <TextInput
                     style={styles.noteInput}
                     value={note}
                     onChangeText={setNote}
-                    placeholder="记录今天的训练感受..."
+                    placeholder={t('train.notePlaceholder')}
                     multiline={false}
                     maxLength={100}
                   />
@@ -453,13 +455,13 @@ export default function TrainScreen() {
                 style={styles.summaryModalCancelButton} 
                 onPress={cancelSave}
               >
-                <Text style={styles.summaryModalCancelText}>不保存</Text>
+                <Text style={styles.summaryModalCancelText}>{t('train.discard')}</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.summaryModalSaveButton} 
                 onPress={saveTrainingSession}
               >
-                <Text style={styles.summaryModalSaveText}>保存</Text>
+                <Text style={styles.summaryModalSaveText}>{t('train.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>
