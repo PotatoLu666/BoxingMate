@@ -50,13 +50,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="two"
-        options={{
-          title: t('tabs.tabTwo'),
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="log"
         options={{
           title: t('tabs.log'),
@@ -64,10 +57,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="profile"
+        options={{
+          title: t('tabs.profile'),
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="dev"
         options={{
-          title: t('tabs.dev'),
-          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
+          href: null,
         }}
       />
     </Tabs>

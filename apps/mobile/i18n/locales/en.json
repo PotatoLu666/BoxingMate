@@ -1,7 +1,7 @@
 {
   "tabs": {
     "train": "Train",
-    "tabTwo": "Tab Two",
+    "profile": "Profile",
     "log": "Log",
     "dev": "Dev"
   },
@@ -67,6 +67,43 @@
     "error": "Error: {{message}}",
     "unknownError": "Unknown error",
     "ipNote": "Note: Update the IP address in the code to your actual PC IP (currently 192.168.1.100)"
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "At least 6 characters",
+    "namePlaceholder": "Your name (optional)",
+    "name": "Name",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loginButton": "Log In",
+    "registerButton": "Create Account",
+    "verifyTitle": "Verify Email",
+    "verifySubtitle": "Enter the 6-digit code sent to {{email}}",
+    "codePlaceholder": "000000",
+    "verifyButton": "Verify",
+    "resendCode": "Resend Code",
+    "resendIn": "Resend in {{seconds}}s",
+    "loginError": "Invalid email or password",
+    "registerError": "Registration failed. Please try again.",
+    "verifyError": "Invalid or expired code",
+    "networkError": "Unable to connect to server"
+  },
+  "profile": {
+    "title": "Profile",
+    "emailLabel": "Email",
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter your name",
+    "saveButton": "Save",
+    "saving": "Saving...",
+    "saved": "Profile updated!",
+    "logout": "Log Out",
+    "logoutConfirm": "Are you sure you want to log out?",
+    "cancel": "Cancel",
+    "confirm": "Log Out"
   },
   "notFound": {
     "title": "Oops!",
