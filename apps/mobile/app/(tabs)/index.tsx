@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SessionStorage } from '../../utils/storage';
 import { TrainingSession, SessionSummary } from '../../types/session';
@@ -15,7 +15,7 @@ interface TimerConfig {
 
 export default function TrainScreen() {
   const { t, i18n } = useTranslation();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [state, setState] = useState<TimerState>('idle');
   const [currentRound, setCurrentRound] = useState(1);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -276,14 +276,14 @@ export default function TrainScreen() {
               borderColor: getStateColor(),
               justifyContent: 'center',
               alignItems: 'center',
-              backgroundColor: colors.surface,
+              backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
             }}
           >
             <Text
               style={{
-                fontSize: 72,
-                fontWeight: '900',
-                fontFamily: 'SpaceMono',
+                fontSize: 80,
+                fontWeight: '200',
+                fontFamily: 'monospace',
                 color: getStateColor(),
                 letterSpacing: 2,
               }}
@@ -353,7 +353,7 @@ export default function TrainScreen() {
                       color: colors.text,
                       minWidth: 50,
                       textAlign: 'center',
-                      fontFamily: 'SpaceMono',
+                      fontVariant: ['tabular-nums'],
                     }}
                   >
                     {item.display}
@@ -370,7 +370,7 @@ export default function TrainScreen() {
                       alignItems: 'center',
                     }}
                   >
-                    <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF' }}>+</Text>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primaryText }}>+</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -381,7 +381,7 @@ export default function TrainScreen() {
         {/* Controls */}
         <View style={{ gap: 12, marginTop: state === 'idle' ? 0 : 'auto', paddingBottom: 16 }}>
           {state === 'idle' && (
-            <Button title={t('train.startTraining')} onPress={handleStart} size="lg" />
+            <Button title={t('train.startTraining')} onPress={handleStart} size="lg" fullWidth />
           )}
 
           {state === 'finished' && (
@@ -390,6 +390,7 @@ export default function TrainScreen() {
               onPress={() => setState('idle')}
               variant="outline"
               size="lg"
+              fullWidth
             />
           )}
 
@@ -402,7 +403,7 @@ export default function TrainScreen() {
                   variant="secondary"
                   size="lg"
                   style={{ backgroundColor: colors.warning }}
-                  textStyle={{ color: '#FFFFFF' }}
+                  textStyle={{ color: isDark ? '#1a1a1a' : '#FFFFFF' }}
                 />
               </View>
               <View style={{ flex: 1 }}>
@@ -486,28 +487,8 @@ export default function TrainScreen() {
             ))}
 
             <View style={{ marginTop: 16 }}>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: colors.textSecondary,
-                  marginBottom: 6,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}
-              >
-                {t('train.noteLabel')}
-              </Text>
-              <TextInput
-                style={{
-                  backgroundColor: colors.inputBg,
-                  borderWidth: 1,
-                  borderColor: colors.inputBorder,
-                  borderRadius: 12,
-                  padding: 12,
-                  fontSize: 15,
-                  color: colors.text,
-                }}
+              <Input
+                label={t('train.noteLabel')}
                 value={note}
                 onChangeText={setNote}
                 placeholder={t('train.notePlaceholder')}
@@ -521,10 +502,10 @@ export default function TrainScreen() {
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <Button title={t('train.discard')} onPress={cancelSave} variant="secondary" />
+            <Button title={t('train.discard')} onPress={cancelSave} variant="secondary" size="lg" fullWidth />
           </View>
           <View style={{ flex: 1 }}>
-            <Button title={t('train.save')} onPress={saveTrainingSession} />
+            <Button title={t('train.save')} onPress={saveTrainingSession} size="lg" fullWidth />
           </View>
         </View>
       </ModalSheet>

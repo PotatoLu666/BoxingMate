@@ -103,7 +103,11 @@
     "logout": "Log Out",
     "logoutConfirm": "Are you sure you want to log out?",
     "cancel": "Cancel",
-    "confirm": "Log Out"
+    "confirm": "Log Out",
+    "theme": "Appearance",
+    "theme_system": "System",
+    "theme_light": "Light",
+    "theme_dark": "Dark"
   },
   "notFound": {
     "title": "Oops!",

@@ -103,7 +103,11 @@
     "logout": "退出登录",
     "logoutConfirm": "确定要退出登录吗？",
     "cancel": "取消",
-    "confirm": "退出"
+    "confirm": "退出",
+    "theme": "外观",
+    "theme_system": "跟随系统",
+    "theme_light": "浅色",
+    "theme_dark": "深色"
   },
   "notFound": {
     "title": "哎呀！",

@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, Text, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { useThemeMode, type ThemeMode } from '../../contexts/ThemeContext';
 import { api } from '../../utils/api';
 import { Button, Card, Input, ConfirmModal, useTheme } from '@/components/ui';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const { mode, setMode } = useThemeMode();
   const { user, logout, refreshProfile } = useAuth();
 
   const [name, setName] = useState(user?.name || '');
@@ -119,6 +122,64 @@ export default function ProfileScreen() {
             placeholder={t('profile.namePlaceholder')}
             placeholderTextColor={colors.textMuted}
           />
+        </Card>
+
+        {/* Theme switcher */}
+        <Card variant="elevated" style={{ marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: colors.textMuted,
+              textTransform: 'uppercase',
+              letterSpacing: 0.8,
+              marginBottom: 12,
+            }}
+          >
+            {t('profile.theme')}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            {(['system', 'light', 'dark'] as ThemeMode[]).map((option) => {
+              const isActive = mode === option;
+              const icons: Record<ThemeMode, React.ComponentProps<typeof FontAwesome>['name']> = {
+                system: 'mobile-phone',
+                light: 'sun-o',
+                dark: 'moon-o',
+              };
+              return (
+                <TouchableOpacity
+                  key={option}
+                  activeOpacity={0.7}
+                  onPress={() => setMode(option)}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    backgroundColor: isActive ? colors.primary : colors.surfaceAlt,
+                    borderWidth: isActive ? 0 : 1,
+                    borderColor: colors.border,
+                  }}
+                >
+                  <FontAwesome
+                    name={icons[option]}
+                    size={18}
+                    color={isActive ? '#FFFFFF' : colors.textSecondary}
+                    style={{ marginBottom: 4 }}
+                  />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '600',
+                      color: isActive ? '#FFFFFF' : colors.textSecondary,
+                    }}
+                  >
+                    {t(`profile.theme_${option}`)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </Card>
 
         {/* Actions */}
