@@ -1,7 +1,7 @@
 {
   "tabs": {
     "train": "训练",
-    "tabTwo": "Tab Two",
+    "profile": "我的",
     "log": "记录",
     "dev": "开发"
   },
@@ -67,6 +67,43 @@
     "error": "错误: {{message}}",
     "unknownError": "未知错误",
     "ipNote": "注意: 请修改代码中的 IP 地址为你的实际 PC IP 地址 (当前设置为 192.168.1.100)"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "至少6个字符",
+    "namePlaceholder": "你的名字（选填）",
+    "name": "名字",
+    "noAccount": "还没有账号？",
+    "hasAccount": "已有账号？",
+    "loginButton": "登录",
+    "registerButton": "创建账号",
+    "verifyTitle": "验证邮箱",
+    "verifySubtitle": "请输入发送到 {{email}} 的6位验证码",
+    "codePlaceholder": "000000",
+    "verifyButton": "验证",
+    "resendCode": "重新发送",
+    "resendIn": "{{seconds}}秒后重发",
+    "loginError": "邮箱或密码错误",
+    "registerError": "注册失败，请重试",
+    "verifyError": "验证码无效或已过期",
+    "networkError": "无法连接到服务器"
+  },
+  "profile": {
+    "title": "我的",
+    "emailLabel": "邮箱",
+    "nameLabel": "名字",
+    "namePlaceholder": "输入你的名字",
+    "saveButton": "保存",
+    "saving": "保存中...",
+    "saved": "已更新！",
+    "logout": "退出登录",
+    "logoutConfirm": "确定要退出登录吗？",
+    "cancel": "取消",
+    "confirm": "退出"
   },
   "notFound": {
     "title": "哎呀！",

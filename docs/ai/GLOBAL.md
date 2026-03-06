@@ -11,15 +11,17 @@ If another instruction file conflicts with this one, **this file wins**.
 BoxingMate is a cross-platform mobile **MVP** that prioritises
 **fast iteration and shipping** above all else.
 
-| Layer    | Technology                                      |
-| -------- | ----------------------------------------------- |
-| Frontend | React Native 0.81 · Expo 54 · Expo Router · TypeScript |
-| Backend  | NestJS 11 · Node 22 (Volta) · TypeScript        |
-| Database | Prisma 7 ORM → Azure Postgres                   |
-| Validation | Zod 4                                          |
-| Cloud    | Microsoft Azure (Blob Storage, Postgres, deploy) |
-| Testing  | Jest 30 · Supertest (API only)                   |
-| Linting  | ESLint 9 · Prettier · typescript-eslint          |
+| Layer      | Technology                                              |
+| ---------- | ------------------------------------------------------- |
+| Frontend   | React Native 0.81 · Expo 54 · Expo Router · TypeScript  |
+| Backend    | NestJS 11 · Node 22 (Volta) · TypeScript                |
+| Database   | Prisma 7 ORM · SQLite (dev) / Azure Postgres (prod)     |
+| Validation | Zod 4                                                    |
+| Auth       | JWT (access + refresh) · Passport · bcrypt               |
+| i18n       | i18next · react-i18next · expo-localization (EN + zh-CN) |
+| Cloud      | Microsoft Azure (Blob Storage, Postgres, deploy)         |
+| Testing    | Jest 30 · Supertest (API only)                           |
+| Linting    | ESLint 9 · Prettier · typescript-eslint                  |
 
 ---
 
@@ -49,18 +51,42 @@ Technical debt is acceptable unless it blocks shipping.
 ## Monorepo Structure
 
 ```
-BoxingMate/                 ← always run commands from here
+BoxingMate/                     ← always run commands from here
 ├── apps/
-│   ├── api/                ← NestJS API (src/, test/unit/, test/e2e/)
-│   └── mobile/             ← Expo app (app/, components/, types/, utils/)
-├── docs/ai/GLOBAL.md       ← this file
-├── package.json            ← root scripts & shared deps
-├── pnpm-workspace.yaml     ← workspace config (apps/*)
+│   ├── api/                    ← NestJS API
+│   │   ├── src/
+│   │   │   ├── auth/           ← register, login, verify-email, refresh (JWT + bcrypt)
+│   │   │   ├── profile/        ← GET/PATCH /profile (protected)
+│   │   │   ├── prisma/         ← PrismaService (global module)
+│   │   │   ├── app.module.ts   ← root module (ConfigModule, PrismaModule, AuthModule, ProfileModule)
+│   │   │   └── main.ts         ← bootstrap with CORS
+│   │   ├── prisma/
+│   │   │   └── schema.prisma   ← User, VerificationCode models
+│   │   ├── prisma.config.ts    ← Prisma 7 config (datasource URL here, NOT in schema)
+│   │   ├── test/unit/          ← *.spec.ts
+│   │   ├── test/e2e/           ← *.e2e-spec.ts
+│   │   └── .env.example
+│   └── mobile/                 ← Expo app
+│       ├── app/
+│       │   ├── (auth)/         ← login, register, verify-email (unauthenticated)
+│       │   ├── (tabs)/         ← train, profile, log, dev (authenticated)
+│       │   └── _layout.tsx     ← AuthProvider + auth guard redirect
+│       ├── contexts/
+│       │   └── AuthContext.tsx  ← auth state, login/logout/register methods
+│       ├── i18n/
+│       │   ├── index.ts        ← i18next config (auto-detect device locale)
+│       │   └── locales/        ← en.json, zh-CN.json
+│       ├── utils/
+│       │   ├── api.ts          ← API client with auto token refresh
+│       │   └── storage.ts      ← training session local storage
+│       ├── types/
+│       │   └── session.ts      ← TrainingSession, SessionSummary
+│       └── components/
+├── docs/ai/GLOBAL.md           ← this file
+├── package.json                ← root scripts & shared deps
+├── pnpm-workspace.yaml         ← workspace config (apps/*)
 └── pnpm-lock.yaml
 ```
-
-> The mobile app uses **Expo Router** (file-based routing) with a
-> tab layout defined in `apps/mobile/app/(tabs)/`.
 
 ---
 
@@ -81,7 +107,7 @@ BoxingMate/                 ← always run commands from here
 # Dependencies
 pnpm install
 
-# Dev servers
+# Dev servers (run BOTH for full-stack dev)
 pnpm dev:api              # NestJS watch mode
 pnpm dev:mobile           # Expo dev server
 pnpm start:api            # alias for dev:api
@@ -109,6 +135,64 @@ cd apps/api && npm run start:dev    # ❌
 
 ---
 
+## Database & Prisma 7
+
+- **Dev**: SQLite (`file:./dev.db`), no external database needed.
+- **Prod**: Azure PostgreSQL (change `DATABASE_URL` + schema provider).
+- **Prisma 7 breaking change**: datasource URL lives in `prisma.config.ts`,
+  **NOT** in `schema.prisma`. The schema only declares `provider`.
+- **PrismaClient** requires an **adapter** in the constructor
+  (e.g. `PrismaLibSql` for SQLite, `PrismaPg` for Postgres).
+  See `apps/api/src/prisma/prisma.service.ts`.
+- Run migrations: `cd apps/api && npx prisma migrate dev --name <name>`
+- Inspect data: `cd apps/api && npx prisma studio`
+
+---
+
+## Authentication Architecture
+
+### Backend (`apps/api/src/auth/`)
+
+| Endpoint               | Method | Auth | Description                        |
+| ---------------------- | ------ | ---- | ---------------------------------- |
+| `/auth/register`       | POST   | No   | Create user, send verification code |
+| `/auth/verify-email`   | POST   | No   | Verify 6-digit code                |
+| `/auth/login`          | POST   | No   | Returns access + refresh JWT       |
+| `/auth/refresh`        | POST   | No   | Exchange refresh token for new pair |
+| `/auth/resend-code`    | POST   | No   | Resend verification code            |
+| `/profile`             | GET    | JWT  | Get user profile                   |
+| `/profile`             | PATCH  | JWT  | Update user name                   |
+
+- Passwords hashed with **bcrypt** (10 rounds).
+- JWT tokens signed with `JWT_SECRET` from `.env`.
+- Access token: 15min. Refresh token: 7 days.
+- Email verification: **mocked** — codes print to API console (`console.log`).
+  Swap to real SMTP when ready.
+- Protected routes use `@UseGuards(JwtAuthGuard)`.
+
+### Frontend (`apps/mobile/`)
+
+- **AuthContext** (`contexts/AuthContext.tsx`): provides `user`, `isAuthenticated`,
+  `login`, `logout`, `register`, `verifyEmail`, `resendCode`, `refreshProfile`.
+- **Auth guard** in root `_layout.tsx`: redirects to `(auth)/login` if not
+  authenticated, to `(tabs)` if authenticated.
+- **Token storage**: JWT stored in AsyncStorage via `utils/api.ts`.
+- **Auto-refresh**: `api.ts` automatically attempts token refresh on 401.
+- **API base URL**: hardcoded in `utils/api.ts` — change when deploying.
+
+---
+
+## i18n (Internationalisation)
+
+- **Languages**: English (`en`), Chinese Simplified (`zh-CN`).
+- **Auto-detection**: device locale via `expo-localization`, falls back to `en`.
+- **Translation files**: `apps/mobile/i18n/locales/{en,zh-CN}.json`.
+- **Usage**: `const { t } = useTranslation()` then `t('section.key')`.
+- **When adding new screens**: add keys to BOTH locale files.
+- Date/time formatting uses `i18n.language` to pick locale for `toLocaleString`.
+
+---
+
 ## Backend Conventions (`apps/api`)
 
 - **NestJS 11** — keep modules simple; avoid excessive layering.
@@ -125,9 +209,11 @@ cd apps/api && npm run start:dev    # ❌
 
 - **Expo 54 + React Native 0.81 + TypeScript**.
 - **Expo Router** for navigation (file-based, typed routes enabled).
+- `(auth)/` route group = unauthenticated screens.
+- `(tabs)/` route group = authenticated screens (Train, Profile, Log, Dev).
 - State management: React hooks first, **Zustand** when component-local
   state is insufficient. Avoid Redux unless explicitly requested.
-- Local storage: **MMKV** (fast) and **AsyncStorage** (fallback).
+- Training data stored **locally** in AsyncStorage (not synced to server).
 - Keep dependencies minimal and mainstream.
 
 ---
