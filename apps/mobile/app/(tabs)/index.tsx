@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, SafeAreaView, View, Text, TouchableOpacity, Modal, TextInput } from 'react-native';
+import { SafeAreaView, View, Text, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SessionStorage } from '../../utils/storage';
 import { TrainingSession, SessionSummary } from '../../types/session';
+import { Button, Card, Input, ModalSheet, ConfirmModal, useTheme } from '@/components/ui';
 
 type TimerState = 'idle' | 'round' | 'rest' | 'paused' | 'finished';
 
@@ -14,6 +15,7 @@ interface TimerConfig {
 
 export default function TrainScreen() {
   const { t, i18n } = useTranslation();
+  const { colors } = useTheme();
   const [state, setState] = useState<TimerState>('idle');
   const [currentRound, setCurrentRound] = useState(1);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -238,500 +240,294 @@ export default function TrainScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* 状态显示 */}
-      <View style={styles.statusContainer}>
-        <Text style={[styles.statusText, { color: getStateColor() }]}>
-          {getStateText()}
-        </Text>
-        {state !== 'idle' && state !== 'finished' && (
-          <Text style={styles.roundText}>
-            {t('train.roundOf', { current: currentRound, total: config.totalRounds })}
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, padding: 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Status */}
+        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              letterSpacing: 2,
+              color: getStateColor(),
+            }}
+          >
+            {getStateText()}
           </Text>
-        )}
-      </View>
+          {state !== 'idle' && state !== 'finished' && (
+            <Text style={{ fontSize: 15, color: colors.textSecondary, marginTop: 4 }}>
+              {t('train.roundOf', { current: currentRound, total: config.totalRounds })}
+            </Text>
+          )}
+        </View>
 
-      {/* 计时器显示 */}
-      <View style={styles.timerContainer}>
-        <Text style={[styles.timerText, { color: getStateColor() }]}>
-          {state === 'idle' ? formatTime(config.roundSeconds) : formatTime(timeLeft)}
-        </Text>
-      </View>
-
-      {/* 设置区域 */}
-      {state === 'idle' && (
-        <View style={styles.settingsContainer}>
-          <Text style={styles.settingsTitle}>{t('train.settings')}</Text>
-          
-          {/* Round Time */}
-          <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>{t('train.roundTime')}</Text>
-            <View style={styles.settingControls}>
-              <TouchableOpacity 
-                style={styles.controlButton}
-                onPress={() => updateConfig('roundSeconds', -15)}
-              >
-                <Text style={styles.controlButtonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.settingValue}>{formatTime(config.roundSeconds)}</Text>
-              <TouchableOpacity 
-                style={styles.controlButton}
-                onPress={() => updateConfig('roundSeconds', 15)}
-              >
-                <Text style={styles.controlButtonText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Rest Time */}
-          <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>{t('train.restTime')}</Text>
-            <View style={styles.settingControls}>
-              <TouchableOpacity 
-                style={styles.controlButton}
-                onPress={() => updateConfig('restSeconds', -15)}
-              >
-                <Text style={styles.controlButtonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.settingValue}>{formatTime(config.restSeconds)}</Text>
-              <TouchableOpacity 
-                style={styles.controlButton}
-                onPress={() => updateConfig('restSeconds', 15)}
-              >
-                <Text style={styles.controlButtonText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Total Rounds */}
-          <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>{t('train.totalRounds')}</Text>
-            <View style={styles.settingControls}>
-              <TouchableOpacity 
-                style={styles.controlButton}
-                onPress={() => updateConfig('totalRounds', -1)}
-              >
-                <Text style={styles.controlButtonText}>-</Text>
-              </TouchableOpacity>
-              <Text style={styles.settingValue}>{config.totalRounds}</Text>
-              <TouchableOpacity 
-                style={styles.controlButton}
-                onPress={() => updateConfig('totalRounds', 1)}
-              >
-                <Text style={styles.controlButtonText}>+</Text>
-              </TouchableOpacity>
-            </View>
+        {/* Timer */}
+        <View style={{ alignItems: 'center', marginBottom: 32 }}>
+          <View
+            style={{
+              width: 260,
+              height: 260,
+              borderRadius: 130,
+              borderWidth: 6,
+              borderColor: getStateColor(),
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: colors.surface,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 72,
+                fontWeight: '900',
+                fontFamily: 'SpaceMono',
+                color: getStateColor(),
+                letterSpacing: 2,
+              }}
+            >
+              {state === 'idle' ? formatTime(config.roundSeconds) : formatTime(timeLeft)}
+            </Text>
           </View>
         </View>
-      )}
 
-      {/* 控制按钮 */}
-      <View style={styles.controlsContainer}>
+        {/* Settings */}
         {state === 'idle' && (
-          <TouchableOpacity style={styles.startButton} onPress={handleStart}>
-            <Text style={styles.startButtonText}>{t('train.startTraining')}</Text>
-          </TouchableOpacity>
-        )}
-        
-        {state === 'finished' && (
-          <TouchableOpacity style={styles.resetButton} onPress={() => setState('idle')}>
-            <Text style={styles.resetButtonText}>{t('train.newTraining')}</Text>
-          </TouchableOpacity>
-        )}
+          <Card style={{ marginBottom: 24 }} variant="elevated">
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '800',
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+                color: colors.primary,
+                marginBottom: 16,
+                textAlign: 'center',
+              }}
+            >
+              {t('train.settings')}
+            </Text>
 
-        {(state === 'round' || state === 'rest' || state === 'paused') && (
-          <View style={styles.activeControls}>
-            <TouchableOpacity style={styles.pauseButton} onPress={handlePauseResume}>
-              <Text style={styles.pauseButtonText}>
-                {state === 'paused' ? t('train.resume') : t('train.pause')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.endButton} onPress={handleEnd}>
-              <Text style={styles.endButtonText}>{t('train.end')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {/* 结束确认模态框 */}
-      <Modal
-        visible={showEndModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowEndModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('train.endTraining')}</Text>
-            <Text style={styles.modalText}>{t('train.endTrainingConfirm')}</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.modalCancelButton} 
-                onPress={() => setShowEndModal(false)}
+            {[
+              { label: t('train.roundTime'), key: 'roundSeconds' as const, delta: 15, display: formatTime(config.roundSeconds) },
+              { label: t('train.restTime'), key: 'restSeconds' as const, delta: 15, display: formatTime(config.restSeconds) },
+              { label: t('train.totalRounds'), key: 'totalRounds' as const, delta: 1, display: String(config.totalRounds) },
+            ].map((item, idx) => (
+              <View
+                key={item.key}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingVertical: 12,
+                  ...(idx > 0 ? { borderTopWidth: 1, borderTopColor: colors.border } : {}),
+                }}
               >
-                <Text style={styles.modalCancelText}>{t('train.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.modalConfirmButton} 
-                onPress={confirmEnd}
-              >
-                <Text style={styles.modalConfirmText}>{t('train.confirm')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* 训练总结模态框 */}
-      <Modal
-        visible={showSummaryModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowSummaryModal(false)}
-      >
-        <View style={styles.summaryModalOverlay}>
-          <View style={styles.summaryModalContent}>
-            <Text style={styles.summaryModalTitle}>{t('train.summaryTitle')}</Text>
-            
-            {sessionSummary && (
-              <View style={styles.summaryDetails}>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{t('train.startTime')}</Text>
-                  <Text style={styles.summaryValue}>
-                    {sessionSummary.startedAt.toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                  {item.label}
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <TouchableOpacity
+                    onPress={() => updateConfig(item.key, -item.delta)}
+                    activeOpacity={0.6}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: colors.surfaceAlt,
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>−</Text>
+                  </TouchableOpacity>
+                  <Text
+                    style={{
+                      marginHorizontal: 16,
+                      fontSize: 17,
+                      fontWeight: '700',
+                      color: colors.text,
+                      minWidth: 50,
+                      textAlign: 'center',
+                      fontFamily: 'SpaceMono',
+                    }}
+                  >
+                    {item.display}
                   </Text>
-                </View>
-                
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{t('train.endTime')}</Text>
-                  <Text style={styles.summaryValue}>
-                    {sessionSummary.endedAt.toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </Text>
-                </View>
-                
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{t('train.roundSetting')}</Text>
-                  <Text style={styles.summaryValue}>
-                    {formatTime(sessionSummary.roundSeconds)} / {formatTime(sessionSummary.restSeconds)}
-                  </Text>
-                </View>
-                
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{t('train.completedRounds')}</Text>
-                  <Text style={styles.summaryValue}>
-                    {sessionSummary.completedRounds} / {sessionSummary.plannedRounds}
-                  </Text>
-                </View>
-                
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>{t('train.totalDuration')}</Text>
-                  <Text style={styles.summaryValue}>
-                    {formatDuration(sessionSummary.totalSeconds)}
-                  </Text>
-                </View>
-                
-                <View style={styles.noteContainer}>
-                  <Text style={styles.noteLabel}>{t('train.noteLabel')}</Text>
-                  <TextInput
-                    style={styles.noteInput}
-                    value={note}
-                    onChangeText={setNote}
-                    placeholder={t('train.notePlaceholder')}
-                    multiline={false}
-                    maxLength={100}
-                  />
+                  <TouchableOpacity
+                    onPress={() => updateConfig(item.key, item.delta)}
+                    activeOpacity={0.6}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      backgroundColor: colors.primary,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: '#FFFFFF' }}>+</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            )}
-            
-            <View style={styles.summaryModalButtons}>
-              <TouchableOpacity 
-                style={styles.summaryModalCancelButton} 
-                onPress={cancelSave}
+            ))}
+          </Card>
+        )}
+
+        {/* Controls */}
+        <View style={{ gap: 12, marginTop: state === 'idle' ? 0 : 'auto', paddingBottom: 16 }}>
+          {state === 'idle' && (
+            <Button title={t('train.startTraining')} onPress={handleStart} size="lg" />
+          )}
+
+          {state === 'finished' && (
+            <Button
+              title={t('train.newTraining')}
+              onPress={() => setState('idle')}
+              variant="outline"
+              size="lg"
+            />
+          )}
+
+          {(state === 'round' || state === 'rest' || state === 'paused') && (
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Button
+                  title={state === 'paused' ? t('train.resume') : t('train.pause')}
+                  onPress={handlePauseResume}
+                  variant="secondary"
+                  size="lg"
+                  style={{ backgroundColor: colors.warning }}
+                  textStyle={{ color: '#FFFFFF' }}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Button
+                  title={t('train.end')}
+                  onPress={handleEnd}
+                  variant="danger"
+                  size="lg"
+                />
+              </View>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* End confirmation */}
+      <ConfirmModal
+        visible={showEndModal}
+        onClose={() => setShowEndModal(false)}
+        onConfirm={confirmEnd}
+        title={t('train.endTraining')}
+        message={t('train.endTrainingConfirm')}
+        confirmText={t('train.confirm')}
+        cancelText={t('train.cancel')}
+        confirmVariant="danger"
+      />
+
+      {/* Training summary */}
+      <ModalSheet
+        visible={showSummaryModal}
+        onClose={() => setShowSummaryModal(false)}
+        title={t('train.summaryTitle')}
+      >
+        {sessionSummary && (
+          <View style={{ marginBottom: 16 }}>
+            {[
+              {
+                label: t('train.startTime'),
+                value: sessionSummary.startedAt.toLocaleTimeString(
+                  i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US',
+                  { hour: '2-digit', minute: '2-digit' },
+                ),
+              },
+              {
+                label: t('train.endTime'),
+                value: sessionSummary.endedAt.toLocaleTimeString(
+                  i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US',
+                  { hour: '2-digit', minute: '2-digit' },
+                ),
+              },
+              {
+                label: t('train.roundSetting'),
+                value: `${formatTime(sessionSummary.roundSeconds)} / ${formatTime(sessionSummary.restSeconds)}`,
+              },
+              {
+                label: t('train.completedRounds'),
+                value: `${sessionSummary.completedRounds} / ${sessionSummary.plannedRounds}`,
+              },
+              {
+                label: t('train.totalDuration'),
+                value: formatDuration(sessionSummary.totalSeconds),
+              },
+            ].map((row, idx) => (
+              <View
+                key={idx}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingVertical: 10,
+                  ...(idx > 0 ? { borderTopWidth: 1, borderTopColor: colors.border } : {}),
+                }}
               >
-                <Text style={styles.summaryModalCancelText}>{t('train.discard')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.summaryModalSaveButton} 
-                onPress={saveTrainingSession}
+                <Text style={{ fontSize: 15, color: colors.textSecondary, fontWeight: '500' }}>
+                  {row.label}
+                </Text>
+                <Text style={{ fontSize: 15, color: colors.text, fontWeight: '700' }}>
+                  {row.value}
+                </Text>
+              </View>
+            ))}
+
+            <View style={{ marginTop: 16 }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: colors.textSecondary,
+                  marginBottom: 6,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
               >
-                <Text style={styles.summaryModalSaveText}>{t('train.save')}</Text>
-              </TouchableOpacity>
+                {t('train.noteLabel')}
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: colors.inputBg,
+                  borderWidth: 1,
+                  borderColor: colors.inputBorder,
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 15,
+                  color: colors.text,
+                }}
+                value={note}
+                onChangeText={setNote}
+                placeholder={t('train.notePlaceholder')}
+                placeholderTextColor={colors.textMuted}
+                multiline={false}
+                maxLength={100}
+              />
             </View>
           </View>
+        )}
+
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flex: 1 }}>
+            <Button title={t('train.discard')} onPress={cancelSave} variant="secondary" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button title={t('train.save')} onPress={saveTrainingSession} />
+          </View>
         </View>
-      </Modal>
+      </ModalSheet>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 20,
-  },
-  statusContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  statusText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  roundText: {
-    fontSize: 18,
-    color: '#666',
-  },
-  timerContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  timerText: {
-    fontSize: 72,
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
-  },
-  settingsContainer: {
-    backgroundColor: '#f8f9fa',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 30,
-  },
-  settingsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  settingControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  controlButton: {
-    backgroundColor: '#007AFF',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  controlButtonText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  settingValue: {
-    marginHorizontal: 15,
-    fontSize: 16,
-    fontWeight: '500',
-    minWidth: 60,
-    textAlign: 'center',
-  },
-  controlsContainer: {
-    alignItems: 'center',
-  },
-  startButton: {
-    backgroundColor: '#2ecc71',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-  },
-  startButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  resetButton: {
-    backgroundColor: '#3498db',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-  },
-  resetButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  activeControls: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  pauseButton: {
-    backgroundColor: '#f39c12',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-  },
-  pauseButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  endButton: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 25,
-  },
-  endButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 25,
-    minWidth: 300,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 25,
-    textAlign: 'center',
-    color: '#666',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    gap: 15,
-  },
-  modalCancelButton: {
-    backgroundColor: '#95a5a6',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  modalCancelText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalConfirmButton: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  modalConfirmText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  summaryModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  summaryModalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 25,
-    width: '100%',
-    maxWidth: 400,
-  },
-  summaryModalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#2ecc71',
-  },
-  summaryDetails: {
-    marginBottom: 20,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingVertical: 4,
-  },
-  summaryLabel: {
-    fontSize: 16,
-    color: '#555',
-    fontWeight: '500',
-  },
-  summaryValue: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '600',
-  },
-  noteContainer: {
-    marginTop: 15,
-  },
-  noteLabel: {
-    fontSize: 16,
-    color: '#555',
-    fontWeight: '500',
-    marginBottom: 8,
-  },
-  noteInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f8f9fa',
-  },
-  summaryModalButtons: {
-    flexDirection: 'row',
-    gap: 15,
-    marginTop: 20,
-  },
-  summaryModalCancelButton: {
-    flex: 1,
-    backgroundColor: '#95a5a6',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  summaryModalCancelText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  summaryModalSaveButton: {
-    flex: 1,
-    backgroundColor: '#2ecc71',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  summaryModalSaveText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});

@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import {
-  StyleSheet,
   SafeAreaView,
+  View,
   Text,
   TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button, useTheme } from '@/components/ui';
 
 export default function VerifyEmailScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
   const { verifyEmail, resendCode, login } = useAuth();
+  const { colors } = useTheme();
 
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,7 +36,6 @@ export default function VerifyEmailScreen() {
     setLoading(true);
     try {
       await verifyEmail(email, code);
-      // Redirect to login after verification
       router.replace('/(auth)/login');
     } catch (err) {
       if (err instanceof Error) {
@@ -58,80 +57,72 @@ export default function VerifyEmailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.inner}
+        style={{ flex: 1, justifyContent: 'center', padding: 24 }}
       >
-        <Text style={styles.title}>{t('auth.verifyTitle')}</Text>
-        <Text style={styles.subtitle}>
+        <Text style={{ fontSize: 36, fontWeight: '900', textAlign: 'center', color: colors.text, marginBottom: 8 }}>
+          🥊
+        </Text>
+        <Text style={{ fontSize: 32, fontWeight: '900', textAlign: 'center', color: colors.text, marginBottom: 8, letterSpacing: 1 }}>
+          {t('auth.verifyTitle')}
+        </Text>
+        <View style={{ width: 40, height: 4, backgroundColor: colors.primary, borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
+        <Text style={{ fontSize: 15, textAlign: 'center', color: colors.textSecondary, marginBottom: 32, lineHeight: 22 }}>
           {t('auth.verifySubtitle', { email })}
         </Text>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? (
+          <Text style={{ color: colors.danger, textAlign: 'center', marginBottom: 16, fontSize: 14, fontWeight: '600' }}>
+            {error}
+          </Text>
+        ) : null}
 
-        <TextInput
-          style={styles.codeInput}
-          placeholder={t('auth.codePlaceholder')}
-          value={code}
-          onChangeText={setCode}
-          keyboardType="number-pad"
-          maxLength={6}
-          textAlign="center"
+        <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 20, marginBottom: 24 }}>
+          <TextInput
+            style={{
+              backgroundColor: colors.inputBg,
+              borderWidth: 1,
+              borderColor: colors.inputBorder,
+              borderRadius: 12,
+              padding: 18,
+              fontSize: 28,
+              letterSpacing: 12,
+              fontWeight: '900',
+              color: colors.text,
+              textAlign: 'center',
+              fontVariant: ['tabular-nums'],
+            }}
+            placeholder={t('auth.codePlaceholder')}
+            placeholderTextColor={colors.textMuted}
+            value={code}
+            onChangeText={setCode}
+            keyboardType="number-pad"
+            maxLength={6}
+            textAlign="center"
+          />
+        </View>
+
+        <Button
+          title={t('auth.verifyButton')}
+          onPress={handleVerify}
+          variant="primary"
+          size="lg"
+          loading={loading}
+          disabled={loading || code.length !== 6}
         />
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleVerify}
-          disabled={loading || code.length !== 6}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>{t('auth.verifyButton')}</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.resendButton}
-          onPress={handleResend}
-          disabled={cooldown > 0}
-        >
-          <Text style={[styles.resendText, cooldown > 0 && styles.resendDisabled]}>
-            {cooldown > 0 ? t('auth.resendIn', { seconds: cooldown }) : t('auth.resendCode')}
-          </Text>
-        </TouchableOpacity>
+        <View style={{ marginTop: 20 }}>
+          <Button
+            title={cooldown > 0 ? t('auth.resendIn', { seconds: cooldown }) : t('auth.resendCode')}
+            onPress={handleResend}
+            variant="ghost"
+            size="md"
+            disabled={cooldown > 0}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  inner: { flex: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#333' },
-  subtitle: { fontSize: 15, textAlign: 'center', color: '#666', marginBottom: 30, lineHeight: 22 },
-  error: { color: '#e74c3c', textAlign: 'center', marginBottom: 15, fontSize: 14 },
-  codeInput: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 16,
-    fontSize: 24,
-    letterSpacing: 8,
-    marginBottom: 20,
-    backgroundColor: '#f9f9f9',
-    fontWeight: 'bold',
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
-  resendButton: { alignItems: 'center', marginTop: 20, padding: 10 },
-  resendText: { color: '#007AFF', fontSize: 15, fontWeight: '500' },
-  resendDisabled: { color: '#999' },
-});

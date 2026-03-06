@@ -5,10 +5,12 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import '../global.css';
 
 import '@/i18n';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { lightColors, darkColors } from '@/components/ui';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -68,8 +70,32 @@ function RootLayoutNav() {
     }
   }, [isAuthenticated, isLoading, segments]);
 
+  const BoxingDark = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      primary: darkColors.primary,
+      background: darkColors.bg,
+      card: darkColors.bg,
+      text: darkColors.text,
+      border: darkColors.border,
+    },
+  };
+
+  const BoxingLight = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: lightColors.primary,
+      background: lightColors.bg,
+      card: lightColors.bg,
+      text: lightColors.text,
+      border: lightColors.border,
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? BoxingDark : BoxingLight}>
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

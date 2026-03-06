@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Modal,
-  ActivityIndicator,
-} from 'react-native';
+import { SafeAreaView, View, Text, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { api } from '../../utils/api';
+import { Button, Card, Input, ConfirmModal, useTheme } from '@/components/ui';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const { user, logout, refreshProfile } = useAuth();
 
   const [name, setName] = useState(user?.name || '');
@@ -46,139 +39,119 @@ export default function ProfileScreen() {
     await logout();
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>{t('profile.title')}</Text>
+  const initials = (
+    (user?.name?.[0]) || (user?.email?.[0]) || '?'
+  ).toUpperCase();
 
-        <View style={styles.field}>
-          <Text style={styles.label}>{t('profile.emailLabel')}</Text>
-          <Text style={styles.value}>{user?.email}</Text>
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
+      <ScrollView
+        contentContainerStyle={{ padding: 24, paddingBottom: 48 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header with avatar */}
+        <View style={{ alignItems: 'center', marginBottom: 28 }}>
+          <View
+            style={{
+              width: 88,
+              height: 88,
+              borderRadius: 44,
+              backgroundColor: colors.primary,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 14,
+            }}
+          >
+            <Text style={{ fontSize: 36, fontWeight: '700', color: '#fff' }}>
+              {initials}
+            </Text>
+          </View>
+
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: '700',
+              color: colors.text,
+              marginBottom: 4,
+            }}
+          >
+            {t('profile.title')}
+          </Text>
+
+          <Text
+            style={{
+              fontSize: 15,
+              color: colors.textSecondary,
+            }}
+          >
+            {user?.email}
+          </Text>
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>{t('profile.nameLabel')}</Text>
-          <TextInput
-            style={styles.input}
+        {/* Profile info card */}
+        <Card variant="elevated" style={{ marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '600',
+              color: colors.textMuted,
+              textTransform: 'uppercase',
+              letterSpacing: 0.8,
+              marginBottom: 4,
+            }}
+          >
+            {t('profile.emailLabel')}
+          </Text>
+          <Text
+            style={{
+              fontSize: 16,
+              color: colors.text,
+              marginBottom: 20,
+            }}
+          >
+            {user?.email}
+          </Text>
+
+          <Input
+            label={t('profile.nameLabel')}
             value={name}
             onChangeText={setName}
             placeholder={t('profile.namePlaceholder')}
+            placeholderTextColor={colors.textMuted}
+          />
+        </Card>
+
+        {/* Actions */}
+        <Button
+          title={saved ? t('profile.saved') : t('profile.saveButton')}
+          onPress={handleSave}
+          variant="primary"
+          loading={saving}
+          disabled={saving}
+          fullWidth
+        />
+
+        <View style={{ marginTop: 16 }}>
+          <Button
+            title={t('profile.logout')}
+            onPress={() => setShowLogoutModal(true)}
+            variant="outline"
+            fullWidth
+            textStyle={{ color: colors.danger }}
+            style={{ borderColor: colors.danger }}
           />
         </View>
+      </ScrollView>
 
-        <TouchableOpacity
-          style={[styles.saveButton, saving && styles.buttonDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveButtonText}>
-              {saved ? t('profile.saved') : t('profile.saveButton')}
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={() => setShowLogoutModal(true)}
-        >
-          <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Modal
+      <ConfirmModal
         visible={showLogoutModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowLogoutModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('profile.logoutConfirm')}</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => setShowLogoutModal(false)}
-              >
-                <Text style={styles.modalCancelText}>{t('profile.cancel')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalConfirmButton}
-                onPress={handleLogout}
-              >
-                <Text style={styles.modalConfirmText}>{t('profile.confirm')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+        title={t('profile.logoutConfirm')}
+        confirmText={t('profile.confirm')}
+        cancelText={t('profile.cancel')}
+        confirmVariant="danger"
+      />
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { flex: 1, padding: 24 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#333', marginBottom: 30 },
-  field: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: '#666', marginBottom: 6 },
-  value: { fontSize: 16, color: '#333', padding: 14, backgroundColor: '#f5f5f5', borderRadius: 10 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
-  },
-  saveButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  saveButtonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
-  logoutButton: {
-    backgroundColor: '#f8f9fa',
-    borderWidth: 1,
-    borderColor: '#e74c3c',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  logoutButtonText: { color: '#e74c3c', fontSize: 17, fontWeight: '600' },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 25,
-    minWidth: 300,
-    alignItems: 'center',
-  },
-  modalTitle: { fontSize: 18, fontWeight: '600', marginBottom: 20, color: '#333', textAlign: 'center' },
-  modalButtons: { flexDirection: 'row', gap: 15 },
-  modalCancelButton: {
-    backgroundColor: '#95a5a6',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  modalCancelText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  modalConfirmButton: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-  },
-  modalConfirmText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-});

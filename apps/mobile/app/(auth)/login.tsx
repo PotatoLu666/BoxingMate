@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   SafeAreaView,
   View,
   Text,
-  TextInput,
   TouchableOpacity,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { Button, Input, useTheme } from '@/components/ui';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { login } = useAuth();
+  const { colors } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,80 +42,62 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.inner}
+        style={{ flex: 1, justifyContent: 'center', padding: 24 }}
       >
-        <Text style={styles.title}>{t('auth.login')}</Text>
+        <Text style={{ fontSize: 36, fontWeight: '900', textAlign: 'center', color: colors.text, marginBottom: 8 }}>
+          🥊
+        </Text>
+        <Text style={{ fontSize: 32, fontWeight: '900', textAlign: 'center', color: colors.text, marginBottom: 6, letterSpacing: 1 }}>
+          {t('auth.login')}
+        </Text>
+        <View style={{ width: 40, height: 4, backgroundColor: colors.primary, borderRadius: 2, alignSelf: 'center', marginBottom: 32 }} />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? (
+          <Text style={{ color: colors.danger, textAlign: 'center', marginBottom: 16, fontSize: 14, fontWeight: '600' }}>
+            {error}
+          </Text>
+        ) : null}
 
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.emailPlaceholder')}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.passwordPlaceholder')}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="password"
-        />
+        <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 20, marginBottom: 24 }}>
+          <Input
+            label={t('auth.emailPlaceholder')}
+            placeholder={t('auth.emailPlaceholder')}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+          />
+          <Input
+            label={t('auth.passwordPlaceholder')}
+            placeholder={t('auth.passwordPlaceholder')}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoComplete="password"
+            containerStyle={{ marginBottom: 0 }}
+          />
+        </View>
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+        <Button
+          title={t('auth.loginButton')}
           onPress={handleLogin}
+          variant="primary"
+          size="lg"
+          loading={loading}
           disabled={loading || !email || !password}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>{t('auth.loginButton')}</Text>
-          )}
-        </TouchableOpacity>
+        />
 
-        <View style={styles.switchRow}>
-          <Text style={styles.switchText}>{t('auth.noAccount')} </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 24 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: 15 }}>{t('auth.noAccount')} </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.switchLink}>{t('auth.register')}</Text>
+            <Text style={{ color: colors.primary, fontSize: 15, fontWeight: '700' }}>{t('auth.register')}</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  inner: { flex: 1, justifyContent: 'center', padding: 24 },
-  title: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 30, color: '#333' },
-  error: { color: '#e74c3c', textAlign: 'center', marginBottom: 15, fontSize: 14 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 14,
-    backgroundColor: '#f9f9f9',
-  },
-  button: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '600' },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
-  switchText: { color: '#666', fontSize: 15 },
-  switchLink: { color: '#007AFF', fontSize: 15, fontWeight: '600' },
-});
