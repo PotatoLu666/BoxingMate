@@ -55,6 +55,11 @@ pnpm build            # Build everything
 pnpm lint             # Lint all packages
 ```
 
+## Contributors
+
+- **[@PotatoLu666](https://github.com/PotatoLu666)** — creator & lead developer
+- **[@Copilot](https://github.com/features/copilot)** — AI pair programmer (auth, i18n, docs, and more)
+
 ## Environment Variables
 
 See `apps/api/.env.example`:
