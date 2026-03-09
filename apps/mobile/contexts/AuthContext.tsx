@@ -5,6 +5,17 @@ interface User {
   id: string;
   email: string;
   name: string | null;
+  nickname: string | null;
+  avatarUrl: string | null;
+  height: number | null;
+  weight: number | null;
+  age: number | null;
+  gender: string | null;
+  fightStyle: string | null;
+  bio: string | null;
+  city: string | null;
+  gym: string | null;
+  profileComplete: number; // percentage 0-100
   createdAt: string;
 }
 
