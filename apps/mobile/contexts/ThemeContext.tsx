@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme as useDeviceColorScheme } from 'react-native';
-import { MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const storage = new MMKV({ id: 'theme' });
+const THEME_KEY = 'boxingmate_theme_mode';
 
 export type ThemeMode = 'system' | 'light' | 'dark';
 
@@ -20,18 +20,27 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const deviceScheme = useDeviceColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>(() => {
-    const stored = storage.getString('themeMode');
-    return (stored as ThemeMode) || 'system';
-  });
+  const [mode, setModeState] = useState<ThemeMode>('system');
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_KEY).then((stored) => {
+      if (stored === 'light' || stored === 'dark' || stored === 'system') {
+        setModeState(stored);
+      }
+      setReady(true);
+    });
+  }, []);
 
   const setMode = (newMode: ThemeMode) => {
     setModeState(newMode);
-    storage.set('themeMode', newMode);
+    AsyncStorage.setItem(THEME_KEY, newMode);
   };
 
   const isDark =
     mode === 'system' ? deviceScheme === 'dark' : mode === 'dark';
+
+  if (!ready) return null;
 
   return (
     <ThemeContext.Provider value={{ mode, setMode, isDark }}>

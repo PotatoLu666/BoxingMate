@@ -200,7 +200,7 @@ export default function TrainScreen() {
       case 'rest': return '#2ecc71';
       case 'paused': return '#f39c12';
       case 'finished': return '#9b59b6';
-      default: return '#34495e';
+      default: return colors.text;
     }
   };
 
