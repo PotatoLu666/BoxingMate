@@ -130,8 +130,8 @@ pnpm lint                 # lint all packages
 
 ```bash
 # NEVER do this:
-cd apps/mobile && pnpm start        # ❌
-cd apps/api && npm run start:dev    # ❌
+cd apps/mobile && pnpm start        # 
+cd apps/api && npm run start:dev    # 
 # NEVER install deps inside a subfolder
 ```
 
