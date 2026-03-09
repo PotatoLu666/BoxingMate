@@ -32,6 +32,8 @@ I will provide features **one by one**.
 - **Do NOT invent features.** Implement only what is explicitly requested.
 - Do not add analytics, ads, payments, push notifications, or any new
   product features unless explicitly asked.
+- **Do NOT run `git commit` or `git push`.** The developer handles all
+  git operations manually. You may stage files with `git add` if asked.
 
 ---
 
