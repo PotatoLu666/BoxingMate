@@ -78,7 +78,6 @@ export class ProfileController {
     @Request() req: { user: { id: string } },
     @Body() body: unknown,
   ) {
-    console.log('PATCH /profile body:', JSON.stringify(body));
     const dto = UpdateProfileDto.parse(body);
     const user = await this.prisma.user.update({
       where: { id: req.user.id },
