@@ -6,7 +6,9 @@ import * as path from 'path';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    const dbUrl = process.env.DATABASE_URL || `file:${path.join(__dirname, '..', '..', 'prisma', 'dev.db')}`;
+    const dbUrl =
+      process.env.DATABASE_URL ||
+      `file:${path.join(__dirname, '..', '..', 'prisma', 'dev.db')}`;
     const adapter = new PrismaLibSql({ url: dbUrl });
     super({ adapter });
   }

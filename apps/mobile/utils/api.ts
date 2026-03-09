@@ -122,7 +122,19 @@ export const api = {
     return res.json();
   },
 
-  async updateProfile(data: { name?: string }) {
+  async updateProfile(data: {
+    name?: string;
+    nickname?: string;
+    avatarUrl?: string;
+    height?: number;
+    weight?: number;
+    age?: number;
+    gender?: string;
+    fightStyle?: string;
+    bio?: string;
+    city?: string;
+    gym?: string;
+  }) {
     const res = await fetchWithAuth('/profile', {
       method: 'PATCH',
       body: JSON.stringify(data),
