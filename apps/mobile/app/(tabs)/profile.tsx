@@ -148,17 +148,17 @@ export default function ProfileScreen() {
     setSaved(false);
     try {
       await api.updateProfile({
-        name: name.trim() || undefined,
-        nickname: nickname.trim() || undefined,
-        avatarUrl: avatarUri || undefined,
-        height: parseNum(height),
-        weight: parseNum(weight),
-        age: parseNum(age),
-        gender: gender || undefined,
-        fightStyle: fightStyle || undefined,
-        bio: bio.trim() || undefined,
-        city: city.trim() || undefined,
-        gym: gym.trim() || undefined,
+        name: name.trim() || null,
+        nickname: nickname.trim() || null,
+        avatarUrl: avatarUri || null,
+        height: parseNum(height) ?? null,
+        weight: parseNum(weight) ?? null,
+        age: parseNum(age) ?? null,
+        gender: gender || null,
+        fightStyle: fightStyle || null,
+        bio: bio.trim() || null,
+        city: city.trim() || null,
+        gym: gym.trim() || null,
       });
       await refreshProfile();
       setSaved(true);
@@ -179,7 +179,7 @@ export default function ProfileScreen() {
     (user?.name?.[0]) || (user?.email?.[0]) || '?'
   ).toUpperCase();
 
-  const profileComplete = user?.profileComplete ?? 0;
+  const profileComplete = Math.round((user?.profileComplete ?? 0) * 100);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
