@@ -123,17 +123,17 @@ export const api = {
   },
 
   async updateProfile(data: {
-    name?: string;
-    nickname?: string;
-    avatarUrl?: string;
-    height?: number;
-    weight?: number;
-    age?: number;
-    gender?: string;
-    fightStyle?: string;
-    bio?: string;
-    city?: string;
-    gym?: string;
+    name?: string | null;
+    nickname?: string | null;
+    avatarUrl?: string | null;
+    height?: number | null;
+    weight?: number | null;
+    age?: number | null;
+    gender?: string | null;
+    fightStyle?: string | null;
+    bio?: string | null;
+    city?: string | null;
+    gym?: string | null;
   }) {
     const res = await fetchWithAuth('/profile', {
       method: 'PATCH',
@@ -145,5 +145,85 @@ export const api = {
 
   async logout() {
     await clearTokens();
+  },
+
+  // --- Training Sessions ---
+
+  async createSession(data: {
+    date: string;
+    type: string;
+    duration: number;
+    rounds?: number | null;
+    roundDuration?: number | null;
+    restDuration?: number | null;
+    intensity?: string | null;
+    notes?: string | null;
+  }) {
+    const res = await fetchWithAuth('/training', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('Failed to create session');
+    return res.json();
+  },
+
+  async getSessions(take = 20, skip = 0) {
+    const res = await fetchWithAuth(`/training?take=${take}&skip=${skip}`);
+    if (!res.ok) throw new Error('Failed to fetch sessions');
+    return res.json() as Promise<{ items: any[]; total: number }>;
+  },
+
+  async deleteSession(id: string) {
+    const res = await fetchWithAuth(`/training/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete session');
+    return res.json();
+  },
+
+  async getWeeklyStats() {
+    const res = await fetchWithAuth('/training/stats/weekly');
+    if (!res.ok) throw new Error('Failed to fetch weekly stats');
+    return res.json() as Promise<{
+      sessionsCount: number;
+      totalDuration: number;
+      avgIntensity: string | null;
+      dates: string[];
+    }>;
+  },
+
+  // --- Daily Check-in ---
+
+  async checkIn(data: {
+    weight?: number | null;
+    mood?: string | null;
+    energy?: string | null;
+  }) {
+    const now = new Date();
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const res = await fetchWithAuth('/checkin', {
+      method: 'POST',
+      body: JSON.stringify({ ...data, date: localDate }),
+    });
+    if (!res.ok) throw new Error('Failed to check in');
+    return res.json();
+  },
+
+  async getTodayCheckIn() {
+    const now = new Date();
+    const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const res = await fetchWithAuth(`/checkin/today?date=${localDate}`);
+    if (!res.ok) throw new Error('Failed to fetch today check-in');
+    return res.json();
+  },
+
+  async getTrends(span: string = 'week', metric: string = 'sessions') {
+    const res = await fetchWithAuth(`/training/stats/trends?span=${span}&metric=${metric}`);
+    if (!res.ok) throw new Error('Failed to fetch trends');
+    return res.json() as Promise<{ labels: string[]; data: number[]; metric: string; span: string }>;
+  },
+
+  async getCheckInHistory(take = 30, skip = 0) {
+    const res = await fetchWithAuth(`/checkin?take=${take}&skip=${skip}`);
+    if (!res.ok) throw new Error('Failed to fetch check-in history');
+    return res.json() as Promise<{ items: any[]; total: number }>;
   },
 };
