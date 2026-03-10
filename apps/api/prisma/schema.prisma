@@ -24,6 +24,9 @@ model User {
   bio           String?
   city          String?
   gym           String?
+
+  trainingSessions TrainingSession[]
+  dailyCheckIns    DailyCheckIn[]
 }
 
 model VerificationCode {
@@ -35,4 +38,36 @@ model VerificationCode {
   createdAt DateTime @default(now())
 
   @@index([email, code])
+}
+
+model TrainingSession {
+  id            String   @id @default(uuid())
+  userId        String
+  date          DateTime
+  type          String   // boxing, muay_thai, mma, kickboxing, sparring, conditioning
+  duration      Int      // total minutes
+  rounds        Int?
+  roundDuration Int?     // seconds per round
+  restDuration  Int?     // seconds rest between rounds
+  intensity     String?  // low, medium, high
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+}
+
+model DailyCheckIn {
+  id        String   @id @default(uuid())
+  userId    String
+  date      DateTime // date only (start of day)
+  weight    Float?
+  mood      String?  // great, good, okay, bad, terrible
+  energy    String?  // high, medium, low
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
 }

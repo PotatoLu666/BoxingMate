@@ -1,11 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaView, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { SessionStorage } from '../../utils/storage';
-import { TrainingSession, SessionSummary } from '../../types/session';
+import { SessionSummary } from '../../types/session';
 import { Button, Card, Input, ModalSheet, ConfirmModal, useTheme } from '@/components/ui';
+import { api } from '@/utils/api';
 
 type TimerState = 'idle' | 'round' | 'rest' | 'paused' | 'finished';
+
+type TrainingType = 'boxing' | 'muay_thai' | 'mma' | 'kickboxing' | 'sparring' | 'conditioning';
+
+const TRAINING_TYPES: { value: TrainingType; label: string; emoji: string }[] = [
+  { value: 'boxing', label: 'Boxing', emoji: '🥊' },
+  { value: 'muay_thai', label: 'Muay Thai', emoji: '🦵' },
+  { value: 'mma', label: 'MMA', emoji: '🤼' },
+  { value: 'kickboxing', label: 'Kickboxing', emoji: '🦶' },
+  { value: 'sparring', label: 'Sparring', emoji: '🥋' },
+  { value: 'conditioning', label: 'Conditioning', emoji: '💪' },
+];
 
 interface TimerConfig {
   roundSeconds: number;
@@ -23,6 +34,13 @@ export default function TrainScreen() {
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
   const [note, setNote] = useState('');
+  const [trainingType, setTrainingType] = useState<TrainingType | string>('boxing');
+  const [customType, setCustomType] = useState('');
+  const [settingsExpanded, setSettingsExpanded] = useState(true);
+
+  const currentTypeLabel = customType
+    || TRAINING_TYPES.find((t) => t.value === trainingType)?.label
+    || trainingType;
   const [config, setConfig] = useState<TimerConfig>({
     roundSeconds: 180,
     restSeconds: 60,
@@ -130,13 +148,19 @@ export default function TrainScreen() {
   const saveTrainingSession = async () => {
     if (!sessionSummary) return;
     
-    const session: TrainingSession = {
-      id: SessionStorage.generateId(),
-      ...sessionSummary,
-      note: note.trim() || undefined,
-    };
-    
-    await SessionStorage.saveSession(session);
+    try {
+      await api.createSession({
+        date: sessionSummary.startedAt.toISOString(),
+        type: customType || trainingType,
+        duration: Math.ceil(sessionSummary.totalSeconds / 60),
+        rounds: sessionSummary.completedRounds,
+        roundDuration: sessionSummary.roundSeconds,
+        restDuration: sessionSummary.restSeconds,
+        notes: note.trim() || null,
+      });
+    } catch {
+      // silently fail — user can add manually from Log tab
+    }
     
     // 重置状态
     setState('idle');
@@ -293,88 +317,149 @@ export default function TrainScreen() {
           </View>
         </View>
 
-        {/* Settings */}
+        {/* Settings (collapsible) */}
         {state === 'idle' && (
           <Card style={{ marginBottom: 24 }} variant="elevated">
-            <Text
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setSettingsExpanded((v) => !v)}
               style={{
-                fontSize: 13,
-                fontWeight: '800',
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-                color: colors.primary,
-                marginBottom: 16,
-                textAlign: 'center',
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
               }}
             >
-              {t('train.settings')}
-            </Text>
-
-            {[
-              { label: t('train.roundTime'), key: 'roundSeconds' as const, delta: 15, display: formatTime(config.roundSeconds) },
-              { label: t('train.restTime'), key: 'restSeconds' as const, delta: 15, display: formatTime(config.restSeconds) },
-              { label: t('train.totalRounds'), key: 'totalRounds' as const, delta: 1, display: String(config.totalRounds) },
-            ].map((item, idx) => (
-              <View
-                key={item.key}
+              <Text
                 style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  paddingVertical: 12,
-                  ...(idx > 0 ? { borderTopWidth: 1, borderTopColor: colors.border } : {}),
+                  fontSize: 13,
+                  fontWeight: '800',
+                  textTransform: 'uppercase',
+                  letterSpacing: 1,
+                  color: colors.primary,
                 }}
               >
-                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
-                  {item.label}
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <TouchableOpacity
-                    onPress={() => updateConfig(item.key, -item.delta)}
-                    activeOpacity={0.6}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 18,
-                      backgroundColor: colors.surfaceAlt,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>−</Text>
-                  </TouchableOpacity>
-                  <Text
-                    style={{
-                      marginHorizontal: 16,
-                      fontSize: 17,
-                      fontWeight: '700',
-                      color: colors.text,
-                      minWidth: 50,
-                      textAlign: 'center',
-                      fontVariant: ['tabular-nums'],
-                    }}
-                  >
-                    {item.display}
+                {t('train.settings')}
+              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {!settingsExpanded && (
+                  <Text style={{ fontSize: 13, color: colors.textMuted }}>
+                    {currentTypeLabel} · {formatTime(config.roundSeconds)} · {config.totalRounds}R
                   </Text>
-                  <TouchableOpacity
-                    onPress={() => updateConfig(item.key, item.delta)}
-                    activeOpacity={0.6}
+                )}
+                <Text style={{ fontSize: 14, color: colors.textMuted }}>
+                  {settingsExpanded ? '▲' : '▼'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {settingsExpanded && (
+              <View style={{ marginTop: 16 }}>
+                {/* Training Type */}
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text, marginBottom: 10 }}>
+                  Training Type
+                </Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                  {TRAINING_TYPES.map((tt) => {
+                    const isActive = trainingType === tt.value && !customType;
+                    return (
+                      <TouchableOpacity
+                        key={tt.value}
+                        onPress={() => { setTrainingType(tt.value); setCustomType(''); }}
+                        activeOpacity={0.7}
+                        style={{
+                          paddingVertical: 7,
+                          paddingHorizontal: 12,
+                          borderRadius: 16,
+                          backgroundColor: isActive ? colors.primary : colors.surfaceAlt,
+                          borderWidth: isActive ? 0 : 1,
+                          borderColor: colors.border,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: isActive ? '#FFFFFF' : colors.textSecondary }}>
+                          {tt.emoji} {tt.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <Input
+                  placeholder="Or enter custom type..."
+                  value={customType}
+                  onChangeText={(text) => {
+                    setCustomType(text);
+                    if (text.trim()) setTrainingType(text.trim() as TrainingType);
+                  }}
+                  style={{ marginBottom: 16 }}
+                />
+
+                {/* Timer Settings */}
+                {[
+                  { label: t('train.roundTime'), key: 'roundSeconds' as const, delta: 15, display: formatTime(config.roundSeconds) },
+                  { label: t('train.restTime'), key: 'restSeconds' as const, delta: 15, display: formatTime(config.restSeconds) },
+                  { label: t('train.totalRounds'), key: 'totalRounds' as const, delta: 1, display: String(config.totalRounds) },
+                ].map((item, idx) => (
+                  <View
+                    key={item.key}
                     style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 18,
-                      backgroundColor: colors.primary,
-                      justifyContent: 'center',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
+                      paddingVertical: 12,
+                      ...(idx > 0 ? { borderTopWidth: 1, borderTopColor: colors.border } : {}),
                     }}
                   >
-                    <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primaryText }}>+</Text>
-                  </TouchableOpacity>
-                </View>
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
+                      {item.label}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <TouchableOpacity
+                        onPress={() => updateConfig(item.key, -item.delta)}
+                        activeOpacity={0.6}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: colors.surfaceAlt,
+                          borderWidth: 1,
+                          borderColor: colors.border,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>−</Text>
+                      </TouchableOpacity>
+                      <Text
+                        style={{
+                          marginHorizontal: 16,
+                          fontSize: 17,
+                          fontWeight: '700',
+                          color: colors.text,
+                          minWidth: 50,
+                          textAlign: 'center',
+                          fontVariant: ['tabular-nums'],
+                        }}
+                      >
+                        {item.display}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => updateConfig(item.key, item.delta)}
+                        activeOpacity={0.6}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: colors.primary,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 18, fontWeight: '700', color: colors.primaryText }}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
               </View>
-            ))}
+            )}
           </Card>
         )}
 
