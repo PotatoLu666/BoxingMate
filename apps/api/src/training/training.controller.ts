@@ -13,6 +13,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { z } from 'zod/v4';
+import { validate } from '../common/validate';
 
 const CreateSessionDto = z.object({
   date: z.iso.datetime(),
@@ -38,7 +39,7 @@ export class TrainingController {
     @Request() req: { user: { id: string } },
     @Body() body: unknown,
   ) {
-    const dto = CreateSessionDto.parse(body);
+    const dto = validate(CreateSessionDto, body);
     return this.prisma.trainingSession.create({
       data: {
         userId: req.user.id,

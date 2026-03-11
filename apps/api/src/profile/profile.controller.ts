@@ -9,6 +9,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { z } from 'zod/v4';
+import { validate } from '../common/validate';
 
 const profileFields = [
   'name',
@@ -78,7 +79,7 @@ export class ProfileController {
     @Request() req: { user: { id: string } },
     @Body() body: unknown,
   ) {
-    const dto = UpdateProfileDto.parse(body);
+    const dto = validate(UpdateProfileDto, body);
     const user = await this.prisma.user.update({
       where: { id: req.user.id },
       data: dto,

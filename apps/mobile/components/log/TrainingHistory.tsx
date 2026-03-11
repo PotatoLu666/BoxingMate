@@ -140,11 +140,13 @@ function NewSessionModal({
   colors,
   onClose,
   onCreated,
+  selectedDate,
 }: {
   visible: boolean;
   colors: ThemeColors;
   onClose: () => void;
   onCreated: () => void;
+  selectedDate?: string;
 }) {
   const styles = makeModalStyles(colors);
 
@@ -156,6 +158,62 @@ function NewSessionModal({
   const [intensity, setIntensity] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = '';
+    const trimmed = value.trim();
+
+    if (field === 'duration') {
+      if (!trimmed) {
+        error = 'Duration is required';
+      } else if (!/^\d+$/.test(trimmed) || parseInt(trimmed, 10) <= 0) {
+        error = 'Must be a positive number';
+      } else if (parseInt(trimmed, 10) > 600) {
+        error = 'Maximum 600 minutes';
+      }
+    } else if (field === 'rounds') {
+      if (trimmed && (!/^\d+$/.test(trimmed) || parseInt(trimmed, 10) <= 0)) {
+        error = 'Must be a positive number';
+      } else if (trimmed && parseInt(trimmed, 10) > 50) {
+        error = 'Maximum 50 rounds';
+      }
+    } else if (field === 'roundDuration') {
+      if (trimmed && (!/^\d+$/.test(trimmed) || parseInt(trimmed, 10) <= 0)) {
+        error = 'Must be a positive number';
+      } else if (trimmed && parseInt(trimmed, 10) > 600) {
+        error = 'Maximum 600 seconds';
+      }
+    } else if (field === 'restDuration') {
+      if (trimmed && (!/^\d+$/.test(trimmed) || parseInt(trimmed, 10) <= 0)) {
+        error = 'Must be a positive number';
+      } else if (trimmed && parseInt(trimmed, 10) > 300) {
+        error = 'Maximum 300 seconds';
+      }
+    }
+
+    setErrors((prev) => {
+      if (error) return { ...prev, [field]: error };
+      const { [field]: _, ...rest } = prev;
+      return rest;
+    });
+    return error;
+  };
+
+  const handleFieldChange = (field: string, setter: (v: string) => void) => (value: string) => {
+    setter(value);
+    validateField(field, value);
+  };
+
+  const validateAll = (): boolean => {
+    const e1 = validateField('duration', duration);
+    const e2 = validateField('rounds', rounds);
+    const e3 = validateField('roundDuration', roundDuration);
+    const e4 = validateField('restDuration', restDuration);
+    return !e1 && !e2 && !e3 && !e4;
+  };
+
+  const hasErrors = Object.keys(errors).length > 0;
 
   const reset = () => {
     setType('boxing');
@@ -165,14 +223,17 @@ function NewSessionModal({
     setRestDuration('');
     setIntensity(null);
     setNotes('');
+    setErrors({});
   };
 
   const handleSubmit = async () => {
-    if (!duration.trim()) return;
+    if (!validateAll()) return;
     setSubmitting(true);
     try {
       await api.createSession({
-        date: new Date().toISOString(),
+        date: selectedDate
+          ? new Date(selectedDate + 'T12:00:00').toISOString()
+          : new Date().toISOString(),
         type,
         duration: parseInt(duration, 10),
         rounds: rounds ? parseInt(rounds, 10) : null,
@@ -235,46 +296,50 @@ function NewSessionModal({
             {/* Duration */}
             <Text style={styles.label}>Duration (minutes) *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.duration && { borderColor: colors.danger }]}
               value={duration}
-              onChangeText={setDuration}
+              onChangeText={handleFieldChange('duration', setDuration)}
               placeholder="45"
               placeholderTextColor={colors.textMuted}
               keyboardType="number-pad"
             />
+            {errors.duration && <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>{errors.duration}</Text>}
 
             {/* Rounds row */}
             <Text style={styles.label}>Rounds (optional)</Text>
             <View style={styles.inputRow}>
               <View style={styles.inputCol}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.rounds && { borderColor: colors.danger }]}
                   value={rounds}
-                  onChangeText={setRounds}
+                  onChangeText={handleFieldChange('rounds', setRounds)}
                   placeholder="Rounds"
                   placeholderTextColor={colors.textMuted}
                   keyboardType="number-pad"
                 />
+                {errors.rounds && <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>{errors.rounds}</Text>}
               </View>
               <View style={styles.inputCol}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.roundDuration && { borderColor: colors.danger }]}
                   value={roundDuration}
-                  onChangeText={setRoundDuration}
+                  onChangeText={handleFieldChange('roundDuration', setRoundDuration)}
                   placeholder="Round (s)"
                   placeholderTextColor={colors.textMuted}
                   keyboardType="number-pad"
                 />
+                {errors.roundDuration && <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>{errors.roundDuration}</Text>}
               </View>
               <View style={styles.inputCol}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, errors.restDuration && { borderColor: colors.danger }]}
                   value={restDuration}
-                  onChangeText={setRestDuration}
+                  onChangeText={handleFieldChange('restDuration', setRestDuration)}
                   placeholder="Rest (s)"
                   placeholderTextColor={colors.textMuted}
                   keyboardType="number-pad"
                 />
+                {errors.restDuration && <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>{errors.restDuration}</Text>}
               </View>
             </View>
 
@@ -323,7 +388,7 @@ function NewSessionModal({
             <TouchableOpacity
               style={[styles.submitBtn, submitting && { opacity: 0.6 }]}
               onPress={handleSubmit}
-              disabled={submitting || !duration.trim()}
+              disabled={submitting || !duration.trim() || hasErrors}
               activeOpacity={0.7}
             >
               {submitting ? (
@@ -450,6 +515,7 @@ export function TrainingHistory({ refreshKey, selectedDate }: TrainingHistoryPro
         colors={colors}
         onClose={() => setModalVisible(false)}
         onCreated={fetchSessions}
+        selectedDate={filterDate !== todayStr ? filterDate : undefined}
       />
     </>
   );

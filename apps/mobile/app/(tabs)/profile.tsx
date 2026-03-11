@@ -104,6 +104,7 @@ export default function ProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [profileErrors, setProfileErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setName(user?.name || '');
@@ -138,12 +139,48 @@ export default function ProfileScreen() {
     }
   };
 
+  const validateProfileField = (field: string, value: string) => {
+    let error = '';
+    const trimmed = value.trim();
+    if (trimmed) {
+      const n = Number(trimmed);
+      if (field === 'height') {
+        if (isNaN(n) || n < 50 || n > 250) error = 'Must be a number between 50–250';
+      } else if (field === 'weight') {
+        if (isNaN(n) || n < 20 || n > 300) error = 'Must be a number between 20–300';
+      } else if (field === 'age') {
+        if (isNaN(n) || !Number.isInteger(n) || n < 10 || n > 100) error = 'Must be an integer between 10–100';
+      }
+    }
+    setProfileErrors((prev) => {
+      if (error) return { ...prev, [field]: error };
+      const { [field]: _, ...rest } = prev;
+      return rest;
+    });
+    return error;
+  };
+
+  const handleProfileFieldChange = (field: string, setter: (v: string) => void) => (value: string) => {
+    setter(value);
+    validateProfileField(field, value);
+  };
+
+  const validateAllProfile = (): boolean => {
+    const e1 = validateProfileField('height', height);
+    const e2 = validateProfileField('weight', weight);
+    const e3 = validateProfileField('age', age);
+    return !e1 && !e2 && !e3;
+  };
+
+  const hasProfileErrors = Object.keys(profileErrors).length > 0;
+
   const parseNum = (v: string): number | undefined => {
     const n = Number(v);
     return v.trim() && !isNaN(n) ? n : undefined;
   };
 
   const handleSave = async () => {
+    if (!validateAllProfile()) return;
     setSaving(true);
     setSaved(false);
     try {
@@ -352,18 +389,20 @@ export default function ProfileScreen() {
               <Input
                 label="Height (cm)"
                 value={height}
-                onChangeText={setHeight}
+                onChangeText={handleProfileFieldChange('height', setHeight)}
                 placeholder="175"
                 keyboardType="numeric"
+                error={profileErrors.height}
               />
             </View>
             <View style={{ flex: 1 }}>
               <Input
                 label="Weight (kg)"
                 value={weight}
-                onChangeText={setWeight}
+                onChangeText={handleProfileFieldChange('weight', setWeight)}
                 placeholder="70"
                 keyboardType="numeric"
+                error={profileErrors.weight}
               />
             </View>
           </View>
@@ -371,10 +410,11 @@ export default function ProfileScreen() {
           <Input
             label="Age"
             value={age}
-            onChangeText={setAge}
+            onChangeText={handleProfileFieldChange('age', setAge)}
             placeholder="25"
             keyboardType="numeric"
             containerStyle={{ marginBottom: 0 }}
+            error={profileErrors.age}
           />
         </Card>
 
@@ -430,7 +470,7 @@ export default function ProfileScreen() {
           onPress={handleSave}
           variant="primary"
           loading={saving}
-          disabled={saving}
+          disabled={saving || hasProfileErrors}
           fullWidth
         />
 

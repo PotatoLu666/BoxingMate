@@ -10,6 +10,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
 import { z } from 'zod/v4';
+import { validate } from '../common/validate';
 
 const CheckinDto = z.object({
   weight: z.number().min(20).max(200).nullish(),
@@ -39,7 +40,7 @@ export class CheckinController {
     @Request() req: { user: { id: string } },
     @Body() body: unknown,
   ) {
-    const dto = CheckinDto.parse(body);
+    const dto = validate(CheckinDto, body);
     const date = startOfDayFromString(dto.date);
     const userId = req.user.id;
     const { date: _, ...fields } = dto;

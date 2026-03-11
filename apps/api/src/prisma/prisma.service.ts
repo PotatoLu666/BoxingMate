@@ -1,15 +1,20 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { PrismaLibSql } from '@prisma/adapter-libsql';
-import * as path from 'path';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pg from 'pg';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   constructor() {
-    const dbUrl =
-      process.env.DATABASE_URL ||
-      `file:${path.join(__dirname, '..', '..', 'prisma', 'dev.db')}`;
-    const adapter = new PrismaLibSql({ url: dbUrl });
+    const pool = new pg.Pool({
+      host: process.env.PGHOST,
+      port: Number(process.env.PGPORT || 5432),
+      database: process.env.PGDATABASE || 'postgres',
+      user: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      ssl: true,
+    });
+    const adapter = new PrismaPg(pool);
     super({ adapter });
   }
 

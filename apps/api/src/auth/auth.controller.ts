@@ -1,6 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { z } from 'zod/v4';
+import { validate } from '../common/validate';
 
 const RegisterDto = z.object({
   email: z.email(),
@@ -32,31 +33,31 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() body: unknown) {
-    const dto = RegisterDto.parse(body);
+    const dto = validate(RegisterDto, body);
     return this.authService.register(dto.email, dto.password, dto.name);
   }
 
   @Post('verify-email')
   async verifyEmail(@Body() body: unknown) {
-    const dto = VerifyDto.parse(body);
+    const dto = validate(VerifyDto, body);
     return this.authService.verifyEmail(dto.email, dto.code);
   }
 
   @Post('login')
   async login(@Body() body: unknown) {
-    const dto = LoginDto.parse(body);
+    const dto = validate(LoginDto, body);
     return this.authService.login(dto.email, dto.password);
   }
 
   @Post('refresh')
   async refresh(@Body() body: unknown) {
-    const dto = RefreshDto.parse(body);
+    const dto = validate(RefreshDto, body);
     return this.authService.refresh(dto.refreshToken);
   }
 
   @Post('resend-code')
   async resendCode(@Body() body: unknown) {
-    const dto = ResendDto.parse(body);
+    const dto = validate(ResendDto, body);
     await this.authService.sendVerificationCode(dto.email);
     return { sent: true };
   }
